@@ -30,6 +30,7 @@ public class ServerListener
     {
         Start();
         ServerLog.Info("SERVER", $"Running on port {ServerConfig.Port}, sync mode: {ServerConfig.SyncMode}, application mode: {ServerConfig.AppMode}");
+        ServerLog.Info("SERVER", "LR10 build marker: pipeline-v2");
 
         try
         {

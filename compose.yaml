@@ -1,0 +1,80 @@
+name: riot-lr8
+
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: riot-db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-hotelbooking}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?нужен пароль в .env, см. .env.example}
+    ports:
+      - "${DB_HOST_PORT:-5433}:5432"
+    volumes:
+      - riot-db-data:/var/lib/postgresql/data
+    networks:
+      - riot-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-hotelbooking}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+  server:
+    build:
+      context: .
+      dockerfile: Server/Dockerfile
+    image: riot-server:lr8
+    container_name: riot-server
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: ${SERVER_PORT:-5377}
+      SERVER_STORAGE: postgres
+      SERVER_SYNC: lock
+      RESERVE_DELAY_MS: ${RESERVE_DELAY_MS:-200}
+      REPLICATION: "on"
+      PUBSUB: "on"
+      CLUSTER: "on"
+      CLUSTER_NODES: ${CLUSTER_NODES:-5}
+      CLUSTER_PORT: ${CLUSTER_PORT:-5411}
+      HEARTBEAT_TIMEOUT_MS: ${HEARTBEAT_TIMEOUT_MS:-500}
+      EVENT_RETRIES: 3
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-hotelbooking}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:?нужен пароль в .env, см. .env.example}
+      DB_PRIMARY_SCHEMA: ${DB_PRIMARY_SCHEMA:-riot_primary}
+      DB_REPLICA_SCHEMA: ${DB_REPLICA_SCHEMA:-riot_replica}
+    ports:
+      - "${SERVER_HOST_PORT:-5377}:${SERVER_PORT:-5377}"
+    networks:
+      - riot-net
+    restart: unless-stopped
+  client:
+    build:
+      context: .
+      dockerfile: Client/Dockerfile
+    image: riot-client:lr8
+    container_name: riot-client
+    depends_on:
+      - server
+    environment:
+      SERVER_HOST: server
+      SERVER_PORT: ${SERVER_PORT:-5377}
+      CLIENT_NAME: Docker Client
+    networks:
+      - riot-net
+    profiles:
+      - client
+
+networks:
+  riot-net:
+    name: riot-net
+    driver: bridge
+
+volumes:
+  riot-db-data:
+    name: riot-db-data

@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: riot-server
+  labels:
+    app: riot-server
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: riot-server
+  template:
+    metadata:
+      labels:
+        app: riot-server
+    spec:
+      initContainers:
+        - name: wait-for-db
+          image: postgres:17-alpine
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - until pg_isready -h riot-db -p 5432 -U postgres -d hotelbooking; do echo "waiting for riot-db"; sleep 2; done
+      containers:
+        - name: server
+          image: riot-server:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5377
+              name: tcp-server
+          readinessProbe:
+            tcpSocket:
+              port: 5377
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
+          env:
+            - name: APP_MODE
+              valueFrom:
+                configMapKeyRef:
+                  name: riot-config
+                  key: APP_MODE
+            - name: SERVER_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: riot-config
+                  key: SERVER_PORT
+            - name: SERVER_STORAGE
+              value: postgres
+            - name: SERVER_SYNC
+              value: lock
+            - name: RESERVE_DELAY_MS
+              value: "200"
+            - name: REPLICATION
+              value: "on"
+            - name: PUBSUB
+              value: "on"
+            - name: CLUSTER
+              value: "on"
+            - name: CLUSTER_NODES
+              value: "5"
+            - name: CLUSTER_PORT
+              value: "5411"
+            - name: HEARTBEAT_TIMEOUT_MS
+              value: "500"
+            - name: EVENT_RETRIES
+              value: "3"
+            - name: DB_HOST
+              value: riot-db
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: hotelbooking
+            - name: DB_USER
+              value: postgres
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: riot-db-secret
+                  key: DB_PASSWORD
+            - name: DB_PRIMARY_SCHEMA
+              value: riot_primary
+            - name: DB_REPLICA_SCHEMA
+              value: riot_replica

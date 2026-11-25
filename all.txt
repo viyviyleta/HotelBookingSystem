@@ -1,0 +1,68 @@
+
+./scripts/run_all_experiments.sh
+
+
+------ Воспроизведение Race Condition (Без синхронизации)
+
+
+dotnet run --project Server -- --port 5005 --sync none --reserve-delay 4000
+
+
+Терминал 2 
+
+dotnet run --project Client -- --port 5005 --name "Client 1" --scenario reserve --room 101
+
+
+
+Терминал 3 
+
+dotnet run --project Client -- --port 5005 --name "Client 2" --scenario reserve --room 101
+
+
+--------- Защита критической секции с помощью `lock`
+
+
+dotnet run --project Server -- --port 5005 --sync lock --reserve-delay 4000
+
+
+-------------- `SemaphoreSlim`
+
+
+dotnet run --project Server-SemaphoreSlim -- --port 5006
+
+
+dotnet run --project Client -- --port 5006 --scenario race --clients 2 --room 101
+
+
+
+--------- Синхронизация времени и задержки сети (Часть 2)
+
+
+dotnet run --project Server -- --port 5005
+
+
+dotnet run --project Client -- --port 5005 --offset 7 --scenario time --delays 0,1000,3000
+
+
+---
+
+-------------- обработки ошибок (Устойчивость сервера)
+
+
+dotnet run --project Client -- --port 5005 --scenario errors
+
+
+
+`SemaphoreSlim`
+
+сервер с `SemaphoreSlim`
+
+
+```bash
+dotnet run --project Server-SemaphoreSlim
+
+```
+
+
+dotnet run --project Client -- --port 5006
+

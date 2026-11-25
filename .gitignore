@@ -1,0 +1,8 @@
+.env
+**/bin/
+**/obj/
+.DS_Store
+k8s/secret.yaml
+**/TestResults/
+TestResults/
+docs/logs/

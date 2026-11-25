@@ -1,0 +1,13 @@
+# ЛР №8: в контекст сборки нужны только исходники Shared, Server и Client.
+**/bin/
+**/obj/
+docs/
+scripts/
+Tests/
+Server-SemaphoreSlim/
+*.md
+*.txt
+*.slnx
+.DS_Store
+.env
+.git/

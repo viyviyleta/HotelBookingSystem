@@ -1,20 +1,4 @@
-#!/usr/bin/env bash
-# Локальный прогон Pipeline ЛР №10 без установленного Jenkins.
-#
-# Скрипт повторяет ту же последовательность этапов, что и Jenkinsfile:
-#   Checkout -> Restore -> Build -> Test -> Package -> Deploy
-# и останавливается на первом неуспешном этапе, как это делает Jenkins.
-#
-# Примеры:
-#   ./scripts/run_lr10_pipeline.sh                 # успешный прогон, BUILD_NUMBER=10
-#   BUILD_NUMBER=11 ./scripts/run_lr10_pipeline.sh  # новый тег Docker-образа
-#   SIMULATE_DEPLOY_FAILURE=1 ./scripts/run_lr10_pipeline.sh  # ошибка Deploy
-#   VERIFY=1 ./scripts/run_lr10_pipeline.sh        # после Deploy выполнить операции клиента
-#
-# Ошибка тестирования моделируется отдельно: временно изменить Assert в тесте,
-# запустить скрипт, убедиться, что Package и Deploy не выполняются, затем вернуть тест.
-#
-# Результаты: docs/logs/lr10/.
+
 set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$(pwd)"

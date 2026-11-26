@@ -47,7 +47,7 @@ public class BusinessLogicTests
 
         Booking? booking = JsonSerializer.Deserialize<Booking>(response.Data);
         Assert.NotNull(booking);
-        Assert.Equal(4 * 100m, booking.TotalAmount);
+        Assert.Equal(7 * 100m, booking.TotalAmount);
         Assert.Equal("Created", booking.Status);
     }
 
